@@ -201,12 +201,14 @@ function getHomePageHTML() {
 }
 
 function buildDirectoryIndex(path, entries, baseUrl) {
+  const prefixLen = path === '/' ? 0 : path.length;
   const items = entries.map(entry => {
-    const name = entry.key.slice(path.length);
+    const rawName = entry.key.slice(prefixLen);
     const isDir = entry.key.endsWith('/');
+    const name = isDir ? rawName.slice(0, -1) : rawName;
     const size = entry.size || '-';
     const date = entry.uploaded ? new Date(entry.uploaded).toISOString().split('T')[0] : '-';
-    return { name: name.replace('/', ''), isDir, size, date };
+    return { name, isDir, size, date };
   }).sort((a, b) => {
     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
     return a.name.localeCompare(b.name);
@@ -293,7 +295,7 @@ export default {
           },
         });
       }
-      return new Response(buildDirectoryIndex(path, entries, url.origin), {
+      return new Response(buildDirectoryIndex(path, entries), {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'public, max-age=3600',
@@ -302,16 +304,15 @@ export default {
     }
 
     let objectKey = path.slice(1);
-
     let object = await env.PUBLIC.get(objectKey);
     if (!object) {
       const list = await env.PUBLIC.list({ prefix: objectKey, delimiter: '/' });
-      if (list.objects.length > 0 || list.delimitedPrefixes.length > 0) {
-        const entries = [
-          ...list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })),
-          ...list.delimitedPrefixes.map(p => ({ key: p, size: 0, uploaded: null }))
-        ];
-        return new Response(buildDirectoryIndex(path, entries, url.origin), {
+      const entries = [
+        ...list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })),
+        ...list.delimitedPrefixes.map(p => ({ key: p, size: 0, uploaded: null }))
+      ];
+      if (entries.length > 0) {
+        return new Response(buildDirectoryIndex(path, entries), {
           headers: {
             'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'public, max-age=3600',
