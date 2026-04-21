@@ -1,0 +1,31 @@
+{
+  "name": "electerm-files",
+  "version": "1.0.0",
+  "description": "Static website served from R2 bucket public",
+  "keywords": [
+    "electerm",
+    "static",
+    "cloudflare",
+    "r2",
+    "storage"
+  ],
+  "homepage": "https://github.com/zxdong262-apps/electerm-files#readme",
+  "bugs": {
+    "url": "https://github.com/zxdong262-apps/electerm-files/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zxdong262-apps/electerm-files.git"
+  },
+  "license": "MIT",
+  "author": "ZHAO Xudong <zxdong@gmail.com>",
+  "type": "module",
+  "main": "src/worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
