@@ -202,14 +202,17 @@ function getHomePageHTML() {
 
 function buildDirectoryIndex(path, entries, baseUrl) {
   const prefixLen = path === '/' ? 0 : path.length - 1;
-  const items = entries.map(entry => {
-    const rawName = entry.key.slice(prefixLen);
-    const isDir = entry.key.endsWith('/');
-    const name = isDir ? rawName.slice(0, -1) : rawName;
-    const size = entry.size || '-';
-    const date = entry.uploaded ? new Date(entry.uploaded).toISOString().split('T')[0] : '-';
-    return { name, isDir, size, date };
-  }).sort((a, b) => {
+  const items = entries
+    .map(entry => {
+      const rawName = entry.key.slice(prefixLen);
+      const isDir = entry.key.endsWith('/');
+      const name = isDir ? rawName.slice(0, -1) : rawName;
+      const size = entry.size || '-';
+      const date = entry.uploaded ? new Date(entry.uploaded).toISOString().split('T')[0] : '-';
+      return { name, isDir, size, date };
+    })
+    .filter(item => item.name !== '')
+    .sort((a, b) => {
     if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
     return a.name.localeCompare(b.name);
   });
