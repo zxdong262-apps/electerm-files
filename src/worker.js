@@ -305,43 +305,36 @@ export default {
 
     let objectKey = path.slice(1);
 
-    // Try to get the file directly first
+    // Check if it's a directory (path ends with / OR has subfolder OR has files under this path)
+    const dirPath = path.endsWith('/') ? path : path + '/';
+    const list = await env.PUBLIC.list({ prefix: dirPath, delimiter: '/' });
+    const isDirectory = path.endsWith('/') || list.objects.length > 0 || list.delimitedPrefixes.length > 0;
+
+    // If directory, show index
+    if (isDirectory) {
+      const entries = [
+        ...list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })),
+        ...list.delimitedPrefixes.map(p => ({ key: p, size: 0, uploaded: null }))
+      ];
+      if (!path.endsWith('/')) {
+        return Response.redirect(url.origin + path + '/', 301);
+      }
+      return new Response(buildDirectoryIndex(path, entries), {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
+    }
+
+    // Try to serve as file
     let object = await env.PUBLIC.get(objectKey);
-
-    // If not found, check if it's a directory request
     if (!object) {
-      const dirPath = path.endsWith('/') ? path : path + '/';
-      const list = await env.PUBLIC.list({ prefix: dirPath, delimiter: '/' });
-      const hasContents = list.objects.length > 0 || list.delimitedPrefixes.length > 0;
-      const hasFolder = list.delimitedPrefixes.length > 0;
-
-      // It's a directory if has contents or path ends with / or has subfolders
-      if (path.endsWith('/') || hasContents || hasFolder) {
-        if (!path.endsWith('/')) {
-          return Response.redirect(url.origin + path + '/', 301);
-        }
-        const entries = [
-          ...list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })),
-          ...list.delimitedPrefixes.map(p => ({ key: p, size: 0, uploaded: null }))
-        ];
-        return new Response(buildDirectoryIndex(path, entries), {
-          headers: {
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'public, max-age=3600',
-          },
-        });
-      }
-
-      // Try index.html fallback
       object = await env.PUBLIC.get(`${objectKey}/index.html`);
-      if (object) {
-        objectKey = `${objectKey}/index.html`;
-      }
+      if (object) objectKey = `${objectKey}/index.html`;
     }
 
-    if (!object) {
-      return new Response('Not Found', { status: 404 });
-    }
+    if (!object) return new Response('Not Found', { status: 404 });
 
     const mimeType = getMimeType(objectKey);
     const cacheControl = getCacheControl(objectKey);
