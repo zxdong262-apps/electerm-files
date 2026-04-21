@@ -280,7 +280,20 @@ export default {
     let path = url.pathname;
 
     if (path === '/' || path === '/index.html') {
-      return new Response(getHomePageHTML(), {
+      const list = await env.PUBLIC.list({ prefix: '', delimiter: '/' });
+      const entries = [
+        ...list.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded })),
+        ...list.delimitedPrefixes.map(p => ({ key: p, size: 0, uploaded: null }))
+      ];
+      if (entries.length === 0) {
+        return new Response(getHomePageHTML(), {
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        });
+      }
+      return new Response(buildDirectoryIndex(path, entries, url.origin), {
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'public, max-age=3600',
