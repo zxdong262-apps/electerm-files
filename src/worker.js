@@ -258,7 +258,7 @@ function buildDirectoryIndex(path, entries, baseUrl) {
   }
 
   for (const item of items) {
-    const href = `${path}${item.name}${item.isDir ? '/' : ''}`;
+    const href = path === '/' ? `/${item.name}${item.isDir ? '/' : ''}` : `${path}${item.name}${item.isDir ? '/' : ''}`;
     html += `
       <tr>
         <td><a href="${href}" class="${item.isDir ? 'dir' : 'file'}">${item.name}${item.isDir ? '/' : ''}</a></td>
