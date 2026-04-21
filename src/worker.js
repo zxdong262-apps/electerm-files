@@ -201,7 +201,7 @@ function getHomePageHTML() {
 }
 
 function buildDirectoryIndex(path, entries, baseUrl) {
-  const prefixLen = path === '/' ? 0 : path.length;
+  const prefixLen = path === '/' ? 0 : path.length - 1;
   const items = entries.map(entry => {
     const rawName = entry.key.slice(prefixLen);
     const isDir = entry.key.endsWith('/');
