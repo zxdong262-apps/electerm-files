@@ -306,8 +306,8 @@ export default {
     let objectKey = path.slice(1);
 
     // Check if it's a directory (path ends with / OR has subfolder OR has files under this path)
-    const dirPath = path.endsWith('/') ? path : path + '/';
-    const list = await env.PUBLIC.list({ prefix: dirPath, delimiter: '/' });
+    const dirPrefix = objectKey.endsWith('/') ? objectKey : objectKey + '/';
+    const list = await env.PUBLIC.list({ prefix: dirPrefix, delimiter: '/' });
     const isDirectory = path.endsWith('/') || list.objects.length > 0 || list.delimitedPrefixes.length > 0;
 
     // If directory, show index
